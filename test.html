@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Movie Bot API Test</title>
+    <style>
+        body {
+            background: #1a1a2e;
+            color: #fff;
+            font-family: Arial, sans-serif;
+            padding: 20px;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        h1 { color: #e94560; }
+        input {
+            padding: 12px;
+            width: 70%;
+            background: #16213e;
+            border: 1px solid #0f3460;
+            color: #fff;
+            border-radius: 8px;
+            font-size: 15px;
+        }
+        button {
+            padding: 12px 20px;
+            background: #e94560;
+            color: #fff;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 15px;
+            font-weight: bold;
+        }
+        button:hover { background: #d63450; }
+        #output {
+            background: #16213e;
+            padding: 20px;
+            margin-top: 20px;
+            border-radius: 8px;
+            white-space: pre-wrap;
+            line-height: 1.6;
+            min-height: 100px;
+        }
+        .loading { color: #ffd700; }
+        .error { color: #ff5555; }
+        .success { color: #50fa7b; }
+    </style>
+</head>
+<body>
+    <h1>🎬 Movie Bot API Test</h1>
+    <p>මෙතන type කරලා Enter ඔබන්න:</p>
+    <input type="text" id="msg" placeholder="Inception ගැන කියන්න" value="Inception ගැන කියන්න">
+    <button onclick="send()">Send</button>
+    <div id="output">Bot එකේ reply එක මෙතන පේනවා...</div>
+
+    <script>
+        async function send() {
+            const msg = document.getElementById('msg').value;
+            const out = document.getElementById('output');
+            out.className = 'loading';
+            out.textContent = '🤔 හිතනවා...';
+
+            try {
+                const res = await fetch('http://localhost:8000/chat', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({message: msg, history: []})
+                });
+                const data = await res.json();
+                
+                if (data.success) {
+                    out.className = 'success';
+                    out.textContent = data.reply;
+                } else {
+                    out.className = 'error';
+                    out.textContent = '❌ Error: ' + (data.error || 'Unknown error');
+                }
+            } catch (e) {
+                out.className = 'error';
+                out.textContent = '❌ Cannot connect to server.\n\n' +
+                    '1. Server එක run වෙනවද බලන්න (python app.py)\n' +
+                    '2. Terminal එකේ "Uvicorn running..." පේනවද බලන්න\n\n' +
+                    'Error: ' + e.message;
+            }
+        }
+
+        document.getElementById('msg').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') send();
+        });
+    </script>
+</body>
+</html>
